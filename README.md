@@ -1,9 +1,5 @@
-#To Do
-#1. Fix regroup
-#2. Fix title
-#
 ## DC_Process_Shiny
-<<<<<<< HEAD
+
 ###Drug Checking App Made with Shiny in R.
 
 This is a proof of concept, to provide drug checking orgs with easy(ish) to use tools for the purpose of visualizing qualitative drug checking results.
