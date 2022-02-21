@@ -1,6 +1,6 @@
 #Scripts licensed under GPL v3 - check license for more info
 ####Pre-prep---#####
-#9.052196 s
+
 st <- Sys.time()
 library(tidyverse)
 library(lubridate)
@@ -37,7 +37,7 @@ edges <- read_xlsx(temp, sheet = 3)
 edges$Date <- ymd(edges$Date)
 benzo <- read_xlsx(temp, sheet = 4)
 node_col <- read_xlsx(temp, sheet =2)
-end_read <- Sys.time()
+
 dcbc$Week.val <- poss.w$Days2[match(dcbc$Date, poss.w$Days)]
 edges$Week.val <- poss.w$Days2[match(edges$Date, poss.w$Days)]
 benzo$Week.val <- poss.w$Days2[match(benzo$WeekID, poss.w$ID)]
@@ -128,10 +128,12 @@ regrouped <- unique(node$Classification)
 library(ggraph)
 library(tidygraph)
 library(shiny)
-library(shinyjs)
 library(shinydashboard)
 library(shinyWidgets)
 library(shinythemes)
+end <- Sys.time()
+loading_time <- end-st
+print(paste("This is how long it takes to pre-load everything", loading_time))
 
 ###UI-#####
 ui <- navbarPage(title = "BC Drug Checking Visualizations",theme = shinytheme("flatly"),
@@ -146,7 +148,7 @@ ui <- navbarPage(title = "BC Drug Checking Visualizations",theme = shinytheme("f
                             h4("Update Jan 2022: The BCCSU drug checking team has made their own app has made their own drug checking app:", a("DrugSense!", href = "https://drugcheckingbc.ca/dashboard/")),
                             h5("It's really cool and far more professional than my app. Go check out"),
                             p("I will keeping this app going mostly to try out some new things, but development on it will be slow. Things I'm thinking of for the future, include heatmaps, adjusting data/month, an area graph of the different benzo's found in the opioid supply, as well as dabbling with some stats... Maybe..."),
-                            p("This work could not have been done without extensive feedback, as well as advice from Karen Ward, who initially asked me for a weekly readout of the drug checking data. She's provided feedback throughout the design of the initial graphs - as well as requested the graphs found on the 'Benzo's and Opioids' page, specifically looking at the effects on supply & cheque day. I've also received some technical (and emotional) support from Gjalt-Jorn Peters, and Adam Palayew."),
+                            p("This work could not have been done without extensive feedback, as well as advice from Karen Ward, who initially asked me for a weekly readout of the drug checking data. She's provided feedback throughout the design of the initial graphs - as well as requested the graphs found on the 'Benzo's and Opioids' page, specifically looking at the effects on supply & cheque day. I've also received some technical (and emotional) support from Gjalt-Jorn Peters, Adam Palayew, Andrew Prestidge & all of the people who provided support through Stackoverflow & the people who created all the R libraries I've used (see github)."),
                             p("While I've had some help this is a completely independent project I've done in my free time during the pandemic. All mistakes are mine."),
                             h1("How to Use this Drug Checking Tool"),
                             h2("One Caution"),
@@ -178,7 +180,7 @@ ui <- navbarPage(title = "BC Drug Checking Visualizations",theme = shinytheme("f
                           )),
                  tabPanel("Drug Checking Data",
                           
-####----------------------------Page 1----------------------------------------------####
+                          ####----------------------------Page 1----------------------------------------------####
                           sidebarLayout(
                             sidebarPanel(width = 2,
                                          selectInput("Drug",
@@ -210,21 +212,21 @@ ui <- navbarPage(title = "BC Drug Checking Visualizations",theme = shinytheme("f
                                                                          height = "750px",
                                                                          brush = "plot_brush")))
                                                  
-                                 #Bar Chart
+                                                 #Bar Chart
                                         ),
-                                 tabPanel(
-                                   "Bar Graph",
-                                   fluidRow(
-                                          plotOutput("single", width = "100%", height = "750px"))
-                                 ))
-                                        )
+                                        tabPanel(
+                                          "Bar Graph",
+                                          fluidRow(
+                                            plotOutput("single", width = "100%", height = "750px"))
+                                        ))
                             )
-                          ),
+                          )
+                 ),
                  tabPanel("Benzos + Opioids",
                           fixedRow(height = "200 px", column(width = 3,
-                                          radioButtons("DC", "Select Expected Drug", 
-                                                       choices = benzo_tests,
-                                                       selected = "Fentanyl/Down")),
+                                                             radioButtons("DC", "Select Expected Drug", 
+                                                                          choices = benzo_tests,
+                                                                          selected = "Fentanyl/Down")),
                                    column(width = 1, offset = 0,
                                           radioButtons("BF", "Percent/Count for\nBenzos/Fentanyl",
                                                        choices = c("% Fentanyl", "% Benzo",
@@ -246,13 +248,13 @@ ui <- navbarPage(title = "BC Drug Checking Visualizations",theme = shinytheme("f
 
 #Server still needs to be fixed...
 server <- function(input, output, session) {
-
-## Steps
-## 1. Build slider UI
-##  
+  
+  ## Steps
+  ## 1. Build slider UI
+  ##  
   # Need to exclude the buttons from themselves being bookmarked
-####------------------------SETUP-----------------------####
- 
+  ####------------------------SETUP-----------------------####
+  
   #Create reactive value to hold slider info
   slidertype <- reactiveValues()
   
@@ -267,14 +269,14 @@ server <- function(input, output, session) {
       slidertype$type <- "default"
     }
   })
-
+  
   the_change <- reactive({
     if(is.null(input$Change)){
       as.character(poss.w$Days2[poss.w$ID == max(get_id)])}else{
         return(input$Change)
-        }
+      }
   }
-)
+  )
   output$myList <- renderUI({
     #Changes based on whether someone selects output
     if(slidertype$type == "1 Week"){
@@ -314,6 +316,7 @@ server <- function(input, output, session) {
     }
   }, ignoreInit = TRUE)
   
+  
   re_group <- function(.data, Classification, Names){
     .data %>%
       mutate(Names = ifelse(Classification %in% input$regroup,                            Classification, Names))
@@ -322,7 +325,7 @@ server <- function(input, output, session) {
   #Back into Days for the purpose of selecting variables
   up_id <- reactive({
     if(!is.null(input$Change)){
-    n_id <- poss.w$ID[poss.w$Days2 %in% input$Change]
+      n_id <- poss.w$ID[poss.w$Days2 %in% input$Change]
     } else {
       n_id <- poss.w$ID[poss.w$ID %in% max(get_id)]
     } 
@@ -333,20 +336,20 @@ server <- function(input, output, session) {
     return(n_id)
     
   })
-#Gets the IDS that are used based on user input
+  #Gets the IDS that are used based on user input
   combined <- reactive({
-      nod = node %>%
-       dplyr::filter(Week.val %in% up_id() &
-                 Expected.Substance %in% input$Drug &
-                   City.Town == input$City
-                   ) %>%
-        select(col_ID)
+    nod = node %>%
+      dplyr::filter(Week.val %in% up_id() &
+                      Expected.Substance %in% input$Drug &
+                      City.Town == input$City
+      ) %>%
+      select(col_ID)
     nod = unique(nod$col_ID)
     return(nod)
   }) 
-##JUST GOTTA FINSH ORGANIZING THIS
-
-#Creates nodes & also provides a weight based on n of occurrence
+  ##JUST GOTTA FINSH ORGANIZING THIS
+  
+  #Creates nodes & also provides a weight based on n of occurrence
   nodes2 <-reactive({ 
     combo <- combined()
     n2 <- node_col %>%
@@ -361,13 +364,13 @@ server <- function(input, output, session) {
       ungroup() 
     if(nrow(n3>1)){
       n3 <- n3 %>%
-      left_join(n2) %>%
-      select(ID, Names, Weight, Classification)
-    n3$Weight[grepl("No Cuts", n3$Names)] <- n3$Weight[grepl("No Cuts", n3$Names)]/2}
+        left_join(n2) %>%
+        select(ID, Names, Weight, Classification)
+      n3$Weight[grepl("No Cuts", n3$Names)] <- n3$Weight[grepl("No Cuts", n3$Names)]/2}
     return(n3)
   })
-
-
+  
+  
   edges2 <- reactive({ 
     combo <- combined()
     e2 <- edge[edge$col_ID %in% combo,] %>%
@@ -375,47 +378,58 @@ server <- function(input, output, session) {
       rowid_to_column("P_ID")  %>%
       pivot_longer(To:From, names_to = "col_n",
                    values_to = "Names") 
-
+    
     e2$Classification <- node_col$Classification[match(e2$Names, node_col$Names)]
     
     e3 <- e2 %>%
       re_group(Classification, Names)
     if(nrow(e3>1)){
       e3 <- e3 %>%
-      left_join(node_col[,-c(3)], by = "Names") %>%
-      select(-Classification, -Names) %>%
-      pivot_wider(id_cols = P_ID, names_from = col_n, values_from = ID) %>%
-      group_by(To, From) %>%
-      summarise(weight = n()) %>%
-      ungroup()}
+        left_join(node_col[,-c(3)], by = "Names") %>%
+        select(-Classification, -Names) %>%
+        pivot_wider(id_cols = P_ID, names_from = col_n, values_from = ID) %>%
+        group_by(To, From) %>%
+        summarise(weight = n()) %>%
+        ungroup()}
     return(e3)
   })
-
+  
   
   the.graph <- reactive({
     edges1 <- edges2()
     node_n <- nodes2()
-    #Learned about scoping! Solution found here: https://twitter.com/dr_lauren_a/status/1423566060050132994
+    #Learned about scoping! I.e., "<-" vs "<<-"
+    #Solution found here: https://twitter.com/dr_lauren_a/status/1423566060050132994
+    # It's critical that the graph remain undirected
+    # In a directed network graph the "To" & "From columns will each == separate amounts
+    # E.g., if  "To" & "From" == Caffeine & Fentanyl OR Fentanyl & Caffeine
+    # the true # of connections will take Caffeine | Fentanyl in either direction
+    # indiscriminately - we're not interested in whether caffeine or Fentanyl
+    # was found 1st, we're interested in the total n of times they're found together
     g <<- graph_from_data_frame(d = edges1, vertices = node_n, directed = FALSE) 
     g <<- simplify(g, remove.loops = TRUE)
     return(g)
   })
-####----------------------------END SETUP BEGIN GRAPH------------#####
-
+  ####----------------------------END SETUP BEGIN GRAPH------------#####
   
-####-----------------------NETWORK GRAPH------------------------#####
-
+  
+  ####-----------------------NETWORK GRAPH------------------------#####
+  
   output$net <- renderPlot({
+    #Testing the amount of time it takes to generate the graph
     start_time <- Sys.time()
     e1 <- edges2()
+    node3 <- nodes2()
     validate(
       need(nrow(e1) >0.9, "Not tested During this Time")
+    )
+    validate(
+      need(max(node3$Weight) < 400, "If you want to look at *this many* drug samples please use the bar graph - otherwise the graph breaks")
     )
     the_city <- input$City
     t_change <- the_change()
     Exp.Drug <- input$Drug
     the_groups <- input$regroup
-
     if(is.null(the_groups)){
       is.op <- FALSE
     } else {
@@ -448,7 +462,7 @@ server <- function(input, output, session) {
     the_title1 <- gsub("\\Q\n\\E", " ", the_title1)
     the_title2 <- gsub("\\Q\n\\E", " ", the_title2)
     
-    node3 <- nodes2()
+    
     g <- the.graph() 
     if(Exp.Drug %in% c(V(g)$Names, "Fentanyl/Down", "All Opioids (Grouped)") & 
        nrow(edges) >=6 & nrow(node3) >=10){
@@ -467,7 +481,7 @@ server <- function(input, output, session) {
         }else{
           st1 <- layout_as_star(gs, center = V(gs)$Names == Exp.Drug)
         }
-
+        
         st1 <- norm_coords(st1, xmin = -0.6, xmax = 0.6, 
                            ymin = -0.6, ymax = +0.6,
                            zmin = -0.6, zmax = +0.6)
@@ -479,22 +493,22 @@ server <- function(input, output, session) {
         lc2 <- which(!which.max(c$csize)==c$membership)
         gs2 <- induced.subgraph(g, lc2)
         circ <- layout_in_circle(gs2)
-      
+        
         circ <- norm_coords(circ, xmin = -0.8, xmax = 0.8, 
                             ymin = -0.8, ymax = +0.8,
                             zmin = -0.8, zmax = +0.8)
         test2 <- rbind(st1,circ) 
         g <- gs %du% gs2
         t_lay <- create_layout(g, test2)
-         
+        
       }else{
         if( (Exp.Drug == "All Opioids (Grouped)"|Exp.Drug == "Fentanyl/Down") &
-           (is.op == FALSE) ){
+            (is.op == FALSE) ){
           st1 <- layout_as_star(g, center = V(g)$Names == "Fentanyl Or Analog")
           st1 <- norm_coords(st1, xmin = -0.8, xmax = 0.8, 
                              ymin = -0.8, ymax = +0.8,
                              zmin = -0.8, zmax = +0.8)
-    
+          
         }else if((Exp.Drug == "All Opioids (Grouped)"|Exp.Drug == "Fentanyl/Down") &
                  is.op == TRUE){
           st1 <- layout_as_star(gs, center = V(gs)$Names == "Opioid")
@@ -502,13 +516,13 @@ server <- function(input, output, session) {
                              ymin = -0.8, ymax = +0.8,
                              zmin = -0.8, zmax = +0.8)
         }else{
-        st1 <- layout_as_star(g, center = V(g)$Names == Exp.Drug)
-
-        st1 <- norm_coords(st1, xmin = -0.8, xmax = 0.8, 
-                           ymin = -0.8, ymax = +0.8,
-                           zmin = -0.8, zmax = +0.8)
-        
-         }
+          st1 <- layout_as_star(g, center = V(g)$Names == Exp.Drug)
+          
+          st1 <- norm_coords(st1, xmin = -0.8, xmax = 0.8, 
+                             ymin = -0.8, ymax = +0.8,
+                             zmin = -0.8, zmax = +0.8)
+          
+        }
         t_lay <- create_layout(g, st1)
       }
       #For every other drug sample - still WIP
@@ -522,27 +536,42 @@ server <- function(input, output, session) {
     y_min <- min(t_lay$y)-0.1
     y_max <- max(t_lay$y)+0.1
     par(mar = c(0, 0, 0, 0))
-    pre_graph <- Sys.time()
-    time_takes <- pre_graph-start_time
+    end_graph <- Sys.time()
+    time_takes <- end_graph-start_time
     cat(file=stderr(), "Time to do pre-graph calculations", time_takes, "\n")
+    if(slidertype$type == "1 Week"){
+      the_break_labels <- c(1, 5, 10, 25, 50,100)
+      the_min_max <- c(0, 400)
+      the_range <- c(0,60)
+    }else if(slidertype$type == "Multiple"){
+      the_break_labels <- c(1, 10, 25, 50,100,200, 300)
+      the_min_max <- c(0, 400)
+      the_range <- c(0,60)
+    } else{
+      the_break_labels <- c(1, 5, 10, 25, 50, 100)
+      the_min_max <- c(0, 400)
+      the_range <- c(0,50)
+    }
+    
+    
     ggraph(t_lay) +
       geom_edge_link0(aes(width = E(g)$weight), colour = "grey") +   # add edges to the plot
       scale_edge_width_continuous(breaks = c(1, 5, 10, 25, 50,100),
                                   label = c(1, 5, 10, 25, 50, 100),
-                                  range = c(1,20), name = "Frequency Found Together",
+                                  range = c(1,20),
+                                  name = "Frequency Found Together",
                                   limits = c(0,400),
                                   guide = guide_legend(order = 2, 
                                                        nrow = 1,
                                                        ncol =7)) +
       geom_node_point(aes(size = V(g)$Weight, color = V(g)$Classification)) +
-      scale_color_manual(values = my_colors, name = "Class of Drug",
-                         guide = guide_legend(order = 3, 
-                                              ncol = 2,
-                                              nrow = 5)) +
-      coord_cartesian(ylim = c(y_min, y_max), xlim = c(x_min, x_max)) +
+      scale_color_manual(values = my_colors, 
+                         name = "Class of Drug") +
+      coord_cartesian(ylim = c(y_min, y_max),
+                      xlim = c(x_min, x_max)) +
       geom_node_text(aes(label = V(g)$Names), angle = 30, size = 5) +
-      scale_size(breaks = c(1,10,20,40, 60,80, 100), label=scales::number,
-                 range = c(1,60), limits = c(1,400), name = "# of Times Drug Found \n in Test Results",
+      scale_size(breaks = the_break_labels, label=scales::number,
+                 range = the_range, limits = the_min_max, name = "# of Times Drug\nFound in Test Results",
                  guide = guide_legend(order = 1,
                                       nrow = 4,
                                       ncol = 2,
@@ -569,20 +598,29 @@ server <- function(input, output, session) {
             legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "cm"),
             legend.margin = margin(0,0, 0, 0, unit = "cm"))+
       guides(color = guide_legend(override.aes = list(size=10),
-                                  nrow = 6,
+                                  nrow = 4,
                                   ncol = 3))
     
   })
   
   
   
-####--------------BAR GRAPH-------------------------------####
+  ####--------------BAR GRAPH-------------------------------####
   output$single <- renderPlot({
-#Need to change "no cuts" - to just their regular name
+    #Need to change "no cuts" - to just their regular name
     top_node2 <- nodes2()
+    
     validate(
       need(nrow(top_node2) >1, "Not tested During this Time")
     )
+    top_node2 <- top_node2 %>%
+      mutate(ID = ifelse(str_detect(Names, "No Cuts"), 0, ID),
+             Names = str_replace_all(Names, "No Cuts\n", "")) %>%
+      group_by(Names, Classification) %>%
+      summarise(ID = sum(ID), Weight = sum(Weight)) %>%
+      ungroup() %>%
+      select(ID, Names, Weight, Classification)
+    
     the_city <- input$City
     t_change <- the_change()
     Exp.Drug <- input$Drug
@@ -639,14 +677,14 @@ server <- function(input, output, session) {
             legend.text = element_text(size=12, hjust  = 0.4, inherit.blank = TRUE))
   })
   
-####---------------TABLE--------------------------------####
+  ####---------------TABLE--------------------------------####
   #Second Page data
   shiny.benzo <-reactive({benzo %>%
       filter(Expected.Substance == input$DC & name == input$BF & City.Town == input$City2) %>%
       select(Week.val, name, Percent, Cheque, Size,  tot.not.test)
   })
   
-
+  
   output$Perc <- renderPlot({
     #Creates conditional to not run % if n too small
     missing_n <- unique(poss.w$ID[poss.w$Days2 %notin% shiny.benzo()$Week.val])
@@ -665,19 +703,25 @@ server <- function(input, output, session) {
     }else if(str_detect(count.perc, "%") & 
              the_mean > 40){
       a <- "a"
-      }else if(str_detect("%", count.perc) &
-               the_mean <= 40){
-        a <- "b"
-      }else{
-        a<- "b"
-        
-      }
+    }else if(str_detect("%", count.perc) &
+             the_mean <= 40){
+      a <- "b"
+    }else{
+      a<- "b"
+      
+    }
     validate(
       need(a == "a",
            "% too unreliable Please Use Count")
     )
-     
-
+    
+    if(input$DC == "All Fentanyl & Fentanyl Analogues (Grouped)"){
+      benzo_caption <-"Note, 'Expected' refers to what people thought the drug they had was. Not all samples may have been sold or contained the drug in question. \n'Fentanyl & Fentanyl Analogues (Grouped)' refers to Samples that were brought in that were suspected to contain fentanyl, an analogue or fentanyl + another drug"
+    }else if (input$DC != "All Fentanyl & Fentanyl Analogues (Grouped)"){
+      benzo_caption <- "Note, 'Expected' refers to what people thought the drug they had was. Not all samples may have been sold or contained the drug in question."
+    }
+    
+    
     
     if(grepl("Count", input$BF) == FALSE){
       benzo.max <- shiny.benzo() %>%
@@ -697,7 +741,7 @@ server <- function(input, output, session) {
         scale_x_discrete(breaks = every_nth(n = 3), drop = FALSE) +
         scale_y_continuous(breaks = integer_breaks(), limits = c(0, benzo.max+5)) +
         labs(title = paste(the_title1, the_title2, sep = "\n"), 
-             x = "Weeks", y = count.perc, caption = "Note, 'Expected' refers to what people thought the drug they had was. Not all samples may have been sold or contained the drug in question")
+             x = "Weeks", y = count.perc, caption = )
     } else{
       graph <- ggplot(new_benzo, aes(x =Week.val, y = Percent)) +
         geom_line(group = 1, size = 1) + 
@@ -705,7 +749,7 @@ server <- function(input, output, session) {
         scale_x_discrete(breaks = every_nth(n = 3), drop = FALSE) +
         scale_y_continuous(breaks = integer_breaks(), limits = c(0, benzo.max+5)) +
         labs(title = paste(the_title1, the_title2, sep = "\n"), 
-             x = "Weeks", y = count.perc, caption = "Note, 'Expected' refers to what people thought the drug they had was. Not all samples may have been sold or contained the drug in question\n")
+             x = "Weeks", y = count.perc, caption = benzo_caption)
     }
     graph +       
       theme_minimal() +
@@ -717,11 +761,8 @@ server <- function(input, output, session) {
                y = 12, label = "Services Closed")
   })
   
-####----------------------FIN--------------------------####
-
+  ####----------------------FIN--------------------------####
+  
 }
 
 shinyApp(ui = ui, server = server)
-
-
-
