@@ -19,7 +19,7 @@
 
 # RStudio files
 .Rproj.user/
-DC_Process_Shiny.Rproj
+DC_Process_Shiny2.Rproj
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
