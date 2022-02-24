@@ -57,10 +57,15 @@ All Scripts are licensed under GPL v3
 Setting Up Gitlab:
 1. make an account at www.gitlab.com
 2. Use whatever email you want
-3. When setting up your username, it's worth noting it will appear on everything gitlab Project
-4. After you've made your account, you should be offered the opportunity to make a new project
+3. When setting up your username, it's worth noting it will appear on everything gitlab Project (and in the url)
+4. After you've made your account, make a new project
 
 ![image](https://user-images.githubusercontent.com/96000770/155586192-ccff4012-0a2e-4656-b36e-5f3de2925ca1.png)
 
+5. Make a new project
+6. After making the project click, "clone" & grab the ssh key
 
+![image](https://user-images.githubusercontent.com/96000770/155615925-fc91e71f-a6ae-4a6b-8e79-0c845c8b7ee9.png)
+
+7. For more instructions on connecting RStudio with gitlab see here: https://cran.r-project.org/web/packages/worcs/vignettes/git_cloud.html
 
