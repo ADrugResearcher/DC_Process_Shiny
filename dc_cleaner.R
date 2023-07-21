@@ -1,7 +1,7 @@
 #Scripts licensed under GPL v3 - check license for more info
 #Remove hashtag from below to install all packages for dc_cleaner & app.R  and initiate renv
 #source("renv_install.R")
-gitlink <- "https://gitlab.com/coolsoftwaredev/drug_checking_data_scraper/-/jobs/artifacts/master/raw/dcbc.csv?job=run"
+gitlink <- "www.yourlinkher.ca"
 library(tidyverse)
 library(lubridate)
 library(RColorBrewer)
